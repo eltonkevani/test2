@@ -30,7 +30,7 @@ release {
         null
       }
     }
-    //generateMessage = { version -> "My new version $version.version" }
+    generateMessage = { version -> "My new version $version.version" }
   }
 }
 
