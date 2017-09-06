@@ -1,0 +1,59 @@
+// Somehow this plugin works only with a buildscript definition
+// Also this plugin seems to be broken on latest Docker version
+buildscript {
+  repositories {
+    jcenter()
+    mavenLocal()
+  }
+
+  dependencies {
+    classpath 'com.bmuschko:gradle-docker-plugin:3.0.11'
+  }
+}
+apply plugin: com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+import com.bmuschko.gradle.docker.tasks.image.*
+
+
+task stageFilesForDocker(type: Sync) {
+
+  into "${buildDir}/docker"
+  from("${buildDir}/libs") {
+    include "*.jar"
+  }
+  from("src/main/docker/Dockerfile")
+}
+
+task buildAgathaClientDockerImage(type: DockerBuildImage) {
+  dependsOn stageFilesForDocker
+  inputDir = file("${buildDir}/docker")
+  tag = "test-app:$version"
+}
+
+task cleanAgathaClientDockerImage(type: DockerRemoveImage) {
+  imageId = "test-app:$version"
+  onError { exception ->
+    if (!exception.message.contains('"No such image:')) // ignore exception if image does not exist otherwise throw it
+      throw exception
+  }
+}
+
+task tagAgathaClientDockerImage(type: DockerTagImage) {
+  dependsOn buildAgathaClientDockerImage
+  tag = "test-app.$version"
+  repository = "eltonkevani/test2"
+  targetImageId { buildAgathaClientDockerImage.getImageId() }
+}
+
+task cleanTagedAgathaClientDockerImage(type: DockerRemoveImage) {
+  imageId = "eltonkevani/test2:test-app.$version"
+  onError { exception ->
+    if (!exception.message.contains('"No such image:')) // ignore exception if image does not exist otherwise throw it
+      throw exception
+  }
+}
+
+task pushAgathaClientDockerImage(type: DockerPushImage) {
+  dependsOn tagAgathaClientDockerImage
+  imageName = "eltonkevani/test2"
+  tag = "test-app.$version"
+}

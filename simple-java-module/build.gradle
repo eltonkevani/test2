@@ -1,2 +1,13 @@
 
 apply plugin: "java"
+apply from: 'gradle/docker.gradle'
+
+
+docker {
+    registryCredentials {
+        url = 'https://index.docker.io/v1/'
+        username = dockerHubUsername
+        password = dockerHubPassword
+        email = dockerHubEmail
+    }
+}

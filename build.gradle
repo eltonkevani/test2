@@ -1,49 +1,52 @@
 buildscript {
   repositories {
+    maven {
+      url "${project.property("nexusBaseUrl")}/groups/public"
+    }
     mavenLocal()
-    ['releases', 'public'].each { r ->
+    ["public", "releases"].each { r ->
       maven {
-        url "${nexusBaseUrl}/repositories/${r}"
-          credentials {
-            username nexusUserName
-            password nexusPassword
+        credentials {
+          username nexusUserName
+          password nexusPassword
         }
+        url "${nexusBaseUrl}/repositories/${r}"
       }
     }
   }
   dependencies {
 
       //classpath 'org.ajoberstar:gradle-git:1.7.1'
-      classpath "com.xebialabs.gradle.plugins:gradle-xl-release-plugin:1.1.5"
+    classpath "com.xebialabs.gradle.plugins:gradle-xl-release-plugin:1.1.5"
+    classpath 'com.bmuschko:gradle-docker-plugin:3.0.11'
   }
 }
 
-//apply plugin: 'org.ajoberstar.release-opinion'
+
 apply plugin: 'xebialabs.release'
-/*
-release {
-  grgit = org.ajoberstar.grgit.Grgit.open(dir: project.projectDir)
-  //defaultVersionStrategy = org.ajoberstar.gradle.git.release.opinion.Strategies.SNAPSHOT
-  versionStrategy org.ajoberstar.gradle.git.release.opinion.Strategies.PRE_RELEASE_ALPHA_BETA
-  tagStrategy {
-    toTagString = { vs -> "${project.name}-$vs" }
-    parseTag = { org.ajoberstar.grgit.Tag tag ->
-      if (tag.name.startsWith(project.name)) {
-        com.github.zafarkhaja.semver.Version.valueOf(tag.name[project.name.size() + 1..-1])
-      } else {
-        null
-      }
-    }
-    //generateMessage = { version -> "My new version $version.version" }
-  }
-}
 
-*/
 
 allprojects { p ->
-  group = 'com.xebialabs.deployit.temp4test'
+  p.repositories {
+    maven {
+      url "${project.property("nexusBaseUrl")}/groups/public"
+    }
+    // last
+    mavenLocal()
+  }
+  p.plugins.withType(com.bmuschko.gradle.docker.DockerRemoteApiPlugin) {
+    docker {
+      registryCredentials {
+        url = 'https://index.docker.io/v1/'
+        username = dockerHubUsername
+        password = dockerHubPassword
+        email = dockerHubEmail
+      }
+    }
 
-  p.apply plugin: 'idea'
+  }
+
+
 }
 println "Root project done"
 logger.quiet("Version issssssssss $version")
