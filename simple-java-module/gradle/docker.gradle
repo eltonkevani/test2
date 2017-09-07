@@ -45,6 +45,7 @@ task tagAgathaClientDockerImage(type: DockerTagImage) {
 }
 
 task cleanTagedAgathaClientDockerImage(type: DockerRemoveImage) {
+  finalizedBy cleanAgathaClientDockerImage
   imageId = "eltonkevani/test2:test-app.$version"
   onError { exception ->
     if (!exception.message.contains('"No such image:')) // ignore exception if image does not exist otherwise throw it
@@ -54,6 +55,8 @@ task cleanTagedAgathaClientDockerImage(type: DockerRemoveImage) {
 
 task pushAgathaClientDockerImage(type: DockerPushImage) {
   dependsOn tagAgathaClientDockerImage
+  finalizedBy cleanTagedAgathaClientDockerImage
   imageName = "eltonkevani/test2"
   tag = "test-app.$version"
 }
+
